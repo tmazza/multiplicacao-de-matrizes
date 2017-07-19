@@ -131,31 +131,22 @@ int main(int argc, char *argv[])
 
 	printMatriz(1);
 	printMatriz(2);
-	printMatriz(3);
 
 	int status = -8;
 	int pid;
 
-	printf(" ---------------------- \n");
-
 	for(int i = 0; i < in1_lin; i++) {
-
-		printf("%d: ", i);
-		
+		int result;
 		for(int k = 0; k < in2_col; k++) { // Colunas em in2
-	
+			result = 0;
 			for(int j = 0; j < in1_col; j++) { // in1_col == in2_lin
-				
-				printf("%d,%d * %d,%d | ", i,j, j,k);
-			
+				result += in1[i][j] * in2[j][k];
 			}
-			printf(" ---- ");
-
+			out[i][k] = result;
 		}
-		
-		printf("\n", i);
-
 	}
+
+	printMatriz(3);
 
 	// pid = fork();
 	// if(pid == 0) {
