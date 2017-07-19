@@ -8,23 +8,24 @@
 #include "util.c"
 #include "../inc/processos.h"
 
-int **in1;
+int **in1 = NULL;
 int in1_lin = 0, in1_col = 0;
 
-int **in2;
+int **in2 = NULL;
 int in2_lin = 0, in2_col = 0;
+
+int **out = NULL;
+int out_lin = 0, out_col = 0;
+
 
 int** alocaMatrizInteiros(int lin, int col)
 {
 	int **m = (int**) malloc(lin * sizeof(int*));
 	for (int i = 0; i < lin; i++) {
-		
 		m[i] = (int*) malloc(col * sizeof(int));
-		
 		for (int j = 0; j < col; j++) {
 			m[i][j] = 0;
 		}
-
 	}
 	return m;
 }
@@ -32,8 +33,13 @@ int** alocaMatrizInteiros(int lin, int col)
 /**
  * Valida parâmetros de entrada
  * Lê e processa arquivos in1 e in2 
+ * Aloca matriz para in1, in2 e out
  */
 void init(int argc, char *argv[]) {
+
+	FILE *temp_file; // Ponteiro para arquivo sido processado
+	int temp_n; // Inteiro lido do arquivo
+
 	if(argc < 4) { 
 		printf("Entrada inválida\n\tUse ./processos in1 in2 n\n"); 
 		exit(1);
@@ -41,87 +47,138 @@ void init(int argc, char *argv[]) {
 
 	printf("\nMatriz 1: %20s\nMatriz 2: %20s\nQtd proc: %s\n\n", argv[2], argv[3], argv[1]);
 
-	/* Lê e processa in1 */
-	FILE *file_in1;
-	file_in1 = fopen(argv[2],"r");
-	if (!file_in1) {
+
+	// TODO: criar função para leitura e processamento do arquivo
+	/**** Lê e processa in1 ****/
+	temp_file = fopen(argv[2],"r");
+	if (!temp_file) {
 		printf("Erro ao abrir arquivo in1\n");
 	    exit(1);
 	}
 	// Números linha x coluna
 
-	fscanf(file_in1, "%*s = %d\n", &in1_lin);
-	fscanf(file_in1, "%*s = %d\n", &in1_col);
+	fscanf(temp_file, "%*s = %d\n", &in1_lin);
+	fscanf(temp_file, "%*s = %d\n", &in1_col);
 
 	if(!in1_lin || !in1_col) {
 		printf("Não foi possível ler o número de linhas ou o número de colunas\n");
 	    exit(1);
 	}
 
-	printf("in1 - Linhas : %d\n", in1_lin);
-	printf("in1 - Colunas: %d\n", in1_col);
-
 	in1 = alocaMatrizInteiros(in1_lin, in1_col);
 
-	int n;
 	for(int i = 0; i < in1_lin; i++) {
 		for(int j = 0; j < in1_col; j++) {
-			fscanf(file_in1, "%d", &n);
-			in1[i][j] = n;
-    		printf("%d, %d --- %d \n", i, j, in1[i][j]);
+			fscanf(temp_file, "%d", &temp_n);
+			in1[i][j] = temp_n;
+		}
+	}
+	fclose(temp_file);
+
+	/**** Lê e processa in2 ****/
+	temp_file = fopen(argv[3],"r");
+	if (!temp_file) {
+		printf("Erro ao abrir arquivo in2\n");
+	    exit(1);
+	}
+	// Números linha x coluna
+
+	fscanf(temp_file, "%*s = %d\n", &in2_lin);
+	fscanf(temp_file, "%*s = %d\n", &in2_col);
+
+	if(!in2_lin || !in2_col) {
+		printf("Não foi possível ler o número de linhas ou o número de colunas\n");
+	    exit(1);
+	}
+
+	in2 = alocaMatrizInteiros(in2_lin, in2_col);
+
+	for(int i = 0; i < in2_lin; i++) {
+		for(int j = 0; j < in2_col; j++) {
+			fscanf(temp_file, "%d", &temp_n);
+			in2[i][j] = temp_n;
 		}
 	}
 
-	// char * format = malloc(sizeof(char) * 3 * in1_col); // 3 --> '%d '
-	// strcpy(format, "");
+	fclose(temp_file);
 
-	// for(int i = 0; i < in1_lin; i++) {
-	// 	strcat(format, "%d ");
-	// } 
-	// printf("--- %s\n", format);
-
-	// // Lê linhas da matriz
-
-	// free(format);
-
-
-	// Número de linhas
-	// while (r != EOF)
-	// {
-	//     line++;
-	//     if (r == 2)
-	//     {
-	//         if(strcmp(argv[2], loc) == 0)
-	//         {
-	//             t_tot += temp;
-	//             found++;
-	//         }
-	//     }
-	//     else
-	//         printf ("Error, line %d in wrong format!\n\n", line);
-	//     r = fscanf(fp, "%f %s\n", &temp, loc);
-	// }
-
-
-	fclose(file_in1);
-
-
-	// 
+	// Alocação matriz resultado
+	out_lin = in1_lin;
+	out_col = in2_col;
+	out = alocaMatrizInteiros(out_lin, out_col);
 
 }
 
+
+void printMatriz(int n) {
+	int lin = n==1?in1_lin : (n==2 ? in2_lin : out_lin) ;
+	int col = n==1?in1_col : (n==2 ? in2_col : out_col) ;
+	int **m = n==1?in1     : (n==2 ? in2     : out) ;
+
+	printf("\n----- Matriz %d | %dx%d -----\n", n, lin, col);
+	for(int i = 0; i < lin; i++) {
+		for(int j = 0; j < col; j++) {
+			printf("%4d", m[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
 
 int main(int argc, char *argv[])
 {
 	init(argc, argv);
 
-	printf("------------\n");
+	printMatriz(1);
+	printMatriz(2);
+	printMatriz(3);
+
+	int status = -8;
+	int pid;
+
+	printf(" ---------------------- \n");
 
 	for(int i = 0; i < in1_lin; i++) {
-		for(int j = 0; j < in1_col; j++) {
-			printf("%d,%d - %d\n", i, j, in1[i][j]);
+
+		printf("%d: ", i);
+		
+		for(int k = 0; k < in2_col; k++) { // Colunas em in2
+	
+			for(int j = 0; j < in1_col; j++) { // in1_col == in2_lin
+				
+				printf("%d,%d * %d,%d | ", i,j, j,k);
+			
+			}
+			printf(" ---- ");
+
 		}
+		
+		printf("\n", i);
+
 	}
+
+	// pid = fork();
+	// if(pid == 0) {
+	// 	printf("enter the ninja\n");
+	// 	sleep(5);
+	// 	printf("get out the ninja\n");
+	// } else {
+
+	// 	int pid2 = fork();
+	// 	if(pid2 == 0) {
+	// 		printf("enter yoland\n");
+	// 		sleep(5);
+	// 		printf("get out yoland\n");
+	// 	} else {
+
+	// 		// only pather room
+	// 		printf("before wait\n");
+	// 		wait();
+	// 		printf("done of wating --- %d \n", status);
+
+	// 	}
+
+	// } 
 
 	return 0;
 }
