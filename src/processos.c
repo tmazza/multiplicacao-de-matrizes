@@ -109,6 +109,28 @@ void init(int argc, char *argv[]) {
 
 }
 
+/**
+ * Grava matriz out em arquivo
+ */
+void save_out() {
+
+	FILE *file_out;
+	file_out = fopen("./out.txt","w");
+	if (!file_out) {
+		printf("Erro ao abrir arquivo out.txt\n");
+	    exit(1);
+	}
+
+	fprintf(file_out, "LINHAS = %d\nCOLUNAS = %d\n", out_lin, out_col);
+	for(int i = 0; i < out_lin; i++) {
+		for(int j = 0; j < out_col; j++) {
+			fprintf(file_out, "%d ", out[i][j]);
+		}
+		fprintf(file_out, "\n");
+	}
+
+	fclose(file_out);
+}
 
 void printMatriz(int n) {
 	int lin = n==1?in1_lin : (n==2 ? in2_lin : out_lin) ;
@@ -147,6 +169,8 @@ int main(int argc, char *argv[])
 	}
 
 	printMatriz(3);
+
+	save_out();
 
 	// pid = fork();
 	// if(pid == 0) {
