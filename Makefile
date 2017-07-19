@@ -5,7 +5,7 @@ SRC_DIR=./src/
 all: makebin processos threads
 
 makebin:
-	@mkdir -p BIN_DIR
+	@mkdir -p $(BIN_DIR)
 
 processos:
 	$(CC) -o $(BIN_DIR)processos $(SRC_DIR)processos.c
