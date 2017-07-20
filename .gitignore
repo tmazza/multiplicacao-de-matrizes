@@ -1,3 +1,4 @@
 out.txt
 bin
-data/m-*
+data
+results
