@@ -14,17 +14,18 @@ void init(int argc, char *argv[]) {
 	define_linhas_cada_processo();
 
 	/**** View ****/ 
-	printf("\nMatriz 1: %20s\nMatriz 2: %20s\nQtd proc: %s\n", argv[1], argv[2], argv[3]);
+	printf("-------------------------------------------\n");
+	printf("Matriz 1: %20s\nMatriz 2: %20s\nQtd proc: %s\n", argv[1], argv[2], argv[3]);
 	for(int i = 0; i < num_procs; i++) {
 		printf("Proc %d, linhas: %d a %d\n", i, procs_dist[i][0], procs_dist[i][1]);
 	}
-
+	printf("-------------------------------------------\n");
 }
 
 void carrega_arquivos(char *path_in1, char *path_in2) {
 
-	FILE *temp_file; // Ponteiro para arquivo sendo processado
-	int temp_n; // Inteiro lido do arquivo
+	FILE *temp_file; 											// Ponteiro para arquivo sendo processado
+	int temp_n; 												// Inteiro lido do arquivo
 
 	/**** Lê e processa in1 ****/
 	temp_file = fopen(path_in1, "r");
@@ -32,8 +33,8 @@ void carrega_arquivos(char *path_in1, char *path_in2) {
 		printf("Erro ao abrir arquivo in1\n");
 	    exit(1);
 	}
-	// Números linha x coluna
 
+	// Números linha x coluna
 	fscanf(temp_file, "%*s = %d\n", &in1_lin);
 	fscanf(temp_file, "%*s = %d\n", &in1_col);
 
@@ -58,8 +59,8 @@ void carrega_arquivos(char *path_in1, char *path_in2) {
 		printf("Erro ao abrir arquivo in2\n");
 	    exit(1);
 	}
-	// Números linha x coluna
 
+	// Números linha x coluna
 	fscanf(temp_file, "%*s = %d\n", &in2_lin);
 	fscanf(temp_file, "%*s = %d\n", &in2_col);
 
@@ -92,13 +93,13 @@ void define_linhas_cada_processo() {
 		num_procs = in1_lin;
 	}
 
-	int lin_procs = in1_lin/num_procs; // Linhas por processo
+	int lin_procs = in1_lin/num_procs; 							// Linhas por processo
 
-	procs_dist = alocaMatrizInteiros(num_procs, 2); // Uma tupla [inicio, fim] para cada processo
+	procs_dist = alocaMatrizInteiros(num_procs, 2); 			// Uma tupla [inicio, fim] para cada processo
 
 	for(int i = 0; i < num_procs; i++) {
-		procs_dist[i][0] = i*lin_procs; // from line
-		procs_dist[i][1] = procs_dist[i][0] + lin_procs - 1; // to line
+		procs_dist[i][0] = i*lin_procs; 						// from line
+		procs_dist[i][1] = procs_dist[i][0] + lin_procs - 1; 	// to line
 	}
 
 	// Divisão pode não ser inteira, linhas faltantes são atribuidas 
@@ -133,3 +134,15 @@ void printMatriz(int lin, int col, int **m)
 	printf("\n");
 }
 
+void resultFileCreate() {
+	file_out = fopen("./out.txt","w");
+	if (!file_out) {
+		printf("Erro ao abrir arquivo out.txt\n");
+	    exit(1);
+	}
+	fprintf(file_out, "LINHAS = %d\nCOLUNAS = %d\n", in1_lin, in2_col);
+}
+
+void resultFileClose() {
+	fclose(file_out);
+}

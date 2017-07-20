@@ -31,6 +31,11 @@ int **in2;
 int in2_lin = 0, in2_col = 0;
 
 /**
+ * Ponteiro para arquivo com resultados
+ */
+FILE *file_out;
+
+/**
  * Valida parâmetros de entrada
  * Lê e processa arquivos in1 e in2 
  * Aloca matriz para in1, in2 e out
@@ -59,3 +64,13 @@ void carrega_arquivos(char *path_in1, char *path_in2);
  * serão atribuídas ao último processo
  */
 void define_linhas_cada_processo();
+
+/**
+ * Abre arquivo de resultado e escreve cabeçalho.
+ */
+void resultFileCreate();
+
+/**
+ * Fechar arquivo de resultado
+ */
+void resultFileClose();
