@@ -8,21 +8,21 @@
 #include "util.c"
 #include "../inc/processos.h"
 
+// Quantidade de processo informadas atrabés da linha de comando
 int num_procs = 0;
 // Distribuição das linhas entre os processos
 // Lista de tuplas [inicio, fim], sendo inicio e fim interiros que
 // definem quais linhas o processo i deve executar
 int **procs_dist; 
-
+// Matriz in1
 int **in1 = NULL;
 int in1_lin = 0, in1_col = 0;
-
+// Matriz in2
 int **in2 = NULL;
 int in2_lin = 0, in2_col = 0;
-
+// Matriz resultado
 int **out = NULL;
 int out_lin = 0, out_col = 0;
-
 
 int** alocaMatrizInteiros(int lin, int col)
 {
@@ -201,7 +201,6 @@ int main(int argc, char *argv[])
 	printMatriz(2);
 
 	int status = -8;
-	int pid;
 
 	// for(int i = 0; i < in1_lin; i++) {
 	// 	int result;
@@ -214,40 +213,55 @@ int main(int argc, char *argv[])
 	// 	}
 	// }
 
-	// pid = fork();
-	// if(pid == 0) {
-	// 	printf("enter the ninja\n");
-	// 	sleep(5);
-	// 	printf("get out the ninja\n");
-	// } else {
+	int myid = 0;
+	pid_t wpid;
+	int pid = fork();
+	if(pid == 0) {
+		
+		printf("proc:%d | id:%d | Linhas atribuidas: %d a %d\n", getpid(), myid, procs_dist[myid][0], procs_dist[myid][1]);
 
-	// 	int pid2 = fork();
-	// 	if(pid2 == 0) {
-	// 		printf("enter yoland\n");
-	// 		sleep(5);
-	// 		printf("get out yoland\n");
-	// 	} else {
+		sleep(2);
+		exit(0);
 
-	// 		// only pather room
-	// 		printf("before wait\n");
-	// 		wait();
-	// 		printf("done of wating --- %d \n", status);
+	 } else {
 
-	// 	}
+	 	myid++;
 
-	// } 
+		int pid2 = fork();
+		if(pid2 == 0) {
+
+			printf("proc:%d | id:%d | Linhas atribuidas: %d a %d\n", getpid(), myid, procs_dist[myid][0], procs_dist[myid][1]);
+			exit(0);
+
+		} 
+		// else {
+
+		// 	// only pather room
+		// 	printf("Esperando... \n");
+		// 	waitpid(pid, &status, 1);
+		// 	waitpid(pid2, &status, 1);
+		// 	printf("Done! %d\n", status);
 
 
+		// 	printMatriz(3);
+		// 	save_out();
 
+		// 	free(procs_dist);
+		// 	free(in1);
+		// 	free(in2);
+		// 	free(out);
 
-	printMatriz(3);
+		// 	exit(0);
 
-	save_out();
+		// }
 
-	free(procs_dist);
-	free(in1);
-	free(in2);
-	free(out);
+	} 
+
+    while ((wpid = wait(&status)) > 0) {
+    	printf("%d Terminou \n", (int) wpid);
+    }
+
+    // Done.
 
 	return 0;
 }
