@@ -15,7 +15,7 @@
  * Processa as linhas de  procs_dist[myid][0] até procs_dist[myid][1]
  * definidas durante a distribuição das linhas
  */
-void processa_linha(int myid, int segment_id, char *shared_memory) {
+void processa_linhas(int myid, int segment_id, char *shared_memory) {
 	int from = procs_dist[myid][0];
 	int to = procs_dist[myid][1];
 	char *lineResult; 											// Concatenação de resultados a serem gravados na shared memory
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	for(int i = 0; i < num_procs; i++) {
 		segment_id[i] = shmget(IPC_PRIVATE, BUFF_SIZE, S_IRUSR | S_IWUSR);
 		if(fork() == 0) {
-			processa_linha(myid, segment_id[myid], shared_memory[myid]);
+			processa_linhas(myid, segment_id[myid], shared_memory[myid]);
 		} else {
 			myid++;
 		}
