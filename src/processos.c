@@ -4,9 +4,13 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
 // 
 #include "util.c"
 #include "../inc/processos.h"
+
+#define BUFF_SIZE 4096
 
 // Quantidade de processo informadas atrabés da linha de comando
 int num_procs = 0;
@@ -20,9 +24,6 @@ int in1_lin = 0, in1_col = 0;
 // Matriz in2
 int **in2 = NULL;
 int in2_lin = 0, in2_col = 0;
-// Matriz resultado
-int **out = NULL;
-int out_lin = 0, out_col = 0;
 
 int** alocaMatrizInteiros(int lin, int col)
 {
@@ -135,11 +136,6 @@ void init(int argc, char *argv[]) {
 	int diff = in1_lin - (num_procs * lin_procs); 
 	procs_dist[num_procs-1][1] += diff;
 
-	/**** Alocação matriz resultado ****/
-	out_lin = in1_lin;
-	out_col = in2_col;
-	out = alocaMatrizInteiros(out_lin, out_col);
-
 	/**** View ****/ 
 	printf("\nMatriz 1: %20s\nMatriz 2: %20s\nQtd proc: %s\n", argv[1], argv[2], argv[3]);
 	printf("Por proc: %d\n", lin_procs);
@@ -149,33 +145,10 @@ void init(int argc, char *argv[]) {
 
 }
 
-/**
- * Grava matriz out em arquivo
- */
-void save_out() {
-
-	FILE *file_out;
-	file_out = fopen("./out.txt","w");
-	if (!file_out) {
-		printf("Erro ao abrir arquivo out.txt\n");
-	    exit(1);
-	}
-
-	fprintf(file_out, "LINHAS = %d\nCOLUNAS = %d\n", out_lin, out_col);
-	for(int i = 0; i < out_lin; i++) {
-		for(int j = 0; j < out_col; j++) {
-			fprintf(file_out, "%d ", out[i][j]);
-		}
-		fprintf(file_out, "\n");
-	}
-
-	fclose(file_out);
-}
-
 void printMatriz(int n) {
-	int lin = n==1?in1_lin : (n==2 ? in2_lin : out_lin) ;
-	int col = n==1?in1_col : (n==2 ? in2_col : out_col) ;
-	int **m = n==1?in1     : (n==2 ? in2     : out) ;
+	int lin = n==1?in1_lin : in2_lin;
+	int col = n==1?in1_col : in2_col;
+	int **m = n==1?in1     : in2;
 
 	printf("\n----- Matriz %d | %dx%d -----\n", n, lin, col);
 	for(int i = 0; i < lin; i++) {
@@ -197,71 +170,93 @@ int main(int argc, char *argv[])
 {
 	init(argc, argv);
 
-	printMatriz(1);
-	printMatriz(2);
+	printf("\n-------------------\n\n");
 
-	int status = -8;
+	// Uma região de memória compartilhada para cada processo
+	int segment_id[num_procs]; // id do segmento do processo, acessado por myid no filhos
+	char *shared_memory[num_procs];
 
-	// for(int i = 0; i < in1_lin; i++) {
-	// 	int result;
-	// 	for(int k = 0; k < in2_col; k++) { // Colunas em in2
-	// 		result = 0;
-	// 		for(int j = 0; j < in1_col; j++) { // in1_col == in2_lin
-	// 			result += in1[i][j] * in2[j][k];
-	// 		}
-	// 		out[i][k] = result;
-	// 	}
-	// }
-
+	int status; // para uso em wait
+	pid_t pid; // Controle encerrame
 	int myid = 0;
-	pid_t wpid;
-	int pid = fork();
-	if(pid == 0) {
-		
-		printf("proc:%d | id:%d | Linhas atribuidas: %d a %d\n", getpid(), myid, procs_dist[myid][0], procs_dist[myid][1]);
 
-		sleep(2);
-		exit(0);
+	for(int i = 0; i < num_procs; i++) {
 
-	 } else {
+		segment_id[i] = shmget(IPC_PRIVATE, BUFF_SIZE, S_IRUSR | S_IWUSR);
 
-	 	myid++;
+		if(fork() == 0) {
+			int from = procs_dist[myid][0];
+			int to = procs_dist[myid][1];
 
-		int pid2 = fork();
-		if(pid2 == 0) {
+			printf("proc:%d | id:%d | Linhas atribuidas: %d a %d\n", getpid(), myid, from, to);
 
-			printf("proc:%d | id:%d | Linhas atribuidas: %d a %d\n", getpid(), myid, procs_dist[myid][0], procs_dist[myid][1]);
+			/* attach the shared memory segment */   
+			shared_memory[myid] = (char *) shmat(segment_id[myid], NULL, 0);
+			
+			char *lineResult;
+			lineResult = (char *) malloc( BUFF_SIZE );
+
+			int len = 0; // tamanho da string gravada
+			int result; // acumulador da linha-coluna
+
+			for(int i = from; i <= to; i++) { // Linhas atribuidas ao processo
+				for(int k = 0; k < in2_col; k++) { // Colunas em in2
+					result = 0;
+					for(int j = 0; j < in1_col; j++) { // in1_col == in2_lin
+						result += in1[i][j] * in2[j][k];
+					}
+					len += sprintf( lineResult + len, "%d ", result);
+				}
+				if(i != to) // Envia quebra de linha extra
+					len += sprintf( lineResult + len, "\n");
+			}
+
+			/** escreve na memória compartilhada **/
+			strcat(shared_memory[myid], "\0");
+			strcpy(shared_memory[myid], lineResult);
+
+			/* detach the shared memory segment */    
+			shmdt(shared_memory[myid]);
+
+			sleep(1);
 			exit(0);
+		} else {
+			myid++;
+		}
+	}
 
-		} 
-		// else {
-
-		// 	// only pather room
-		// 	printf("Esperando... \n");
-		// 	waitpid(pid, &status, 1);
-		// 	waitpid(pid2, &status, 1);
-		// 	printf("Done! %d\n", status);
-
-
-		// 	printMatriz(3);
-		// 	save_out();
-
-		// 	free(procs_dist);
-		// 	free(in1);
-		// 	free(in2);
-		// 	free(out);
-
-		// 	exit(0);
-
-		// }
-
-	} 
-
-    while ((wpid = wait(&status)) > 0) {
-    	printf("%d Terminou \n", (int) wpid);
+	// busy wainting esperando todos os processo terminarem
+    while ((pid = wait(&status)) > 0) {
+    	printf("%d: terminei \\o/ \n", (int) pid);
     }
 
-    // Done.
+    // Grava resultados
+	FILE *file_out;
+	file_out = fopen("./out.txt","w");
+	if (!file_out) {
+		printf("Erro ao abrir arquivo out.txt\n");
+	    exit(1);
+	}
+
+	fprintf(file_out, "LINHAS = %d\nCOLUNAS = %d\n", in1_lin, in2_col);
+	
+	for(int i = 0; i < num_procs; i++) {
+		shared_memory[i] = (char *) shmat(segment_id[i], NULL, 0);
+		fprintf(file_out, "%s\n", shared_memory[i]);
+		shmdt(shared_memory[i]);
+	}
+
+	fclose(file_out);
+
+	// Libera memória alocada
+	free(procs_dist);
+	free(in1);
+	free(in2);
+	
+	// Libera memórias compartilhadas
+	for(int i = 0; i < num_procs; i++) {
+		shmctl(segment_id[i], IPC_RMID, NULL);
+	}
 
 	return 0;
 }
