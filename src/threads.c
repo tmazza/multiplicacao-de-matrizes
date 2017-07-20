@@ -18,7 +18,7 @@ void *processa_linha (void *arg) {
 	int from = lines->from;
 	int to = lines->to;
 
-    printf("Linhas: %d a %d\n", from, to);
+    printf("Comecei  linhas: %d a %d\n", from, to);
 
     int result;
 	for(int i = from; i <= to; i++) { 							// Linhas atribuidas ao processo
@@ -31,23 +31,35 @@ void *processa_linha (void *arg) {
 		}
 	}
 
+    printf("Terminei linhas: %d a %d\n", from, to);
     sleep(1);
     pthread_exit(NULL);
 }
 
+void save_out() {
+    // Grava resultados
+    resultFileCreate();
+	for(int i = 0; i < out_lin; i++) {
+		for(int j = 0; j < out_col; j++) {
+			fprintf(file_out, "%d ", out[i][j]);
+		}
+		fprintf(file_out, "\n");
+	}
+	resultFileClose();
+}
+
 int main( int argc, char **argv) {
-    
+  
 	init(argc, argv);
-
-	out_lin = in1_lin;
-	out_col = in2_col;
-	out = alocaMatrizInteiros(out_lin, out_col);
-
-	printMatriz(out_lin, out_col, out);
 
     int status;
 	pthread_t thr[num_procs]; // N threads
     Lines lines[num_procs]; // Linhas que threads i deve executar
+
+	// Matriz para resultado acessa pelas threads filhas
+	out_lin = in1_lin;
+	out_col = in2_col;
+	out = alocaMatrizInteiros(out_lin, out_col);
 
     // Cria n threads 
     for(int i = 0; i < num_procs; i++) {
@@ -71,10 +83,13 @@ int main( int argc, char **argv) {
 	    }
     }
 
-    printf("\n\nresultado\n");
+    // Grava resultados em arquivo
+    save_out();
+
   	printMatriz(out_lin, out_col, out);
 
 	// Libera memória alocada
 	libera_memoria_alocada();
     free(out);
 }
+
