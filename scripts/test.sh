@@ -12,7 +12,7 @@ echo -n '' > $result_file
 
 soma=0.0
 
-for i in `seq 1 3`
+for i in `seq 1 10`
 do
 	TIMEFORMAT=%R
 	TIME=$( { time $cmd > /dev/null; } 2>&1 )
@@ -21,6 +21,6 @@ do
 	soma=`echo $soma + $TIME | bc`
 done
 
-media=`echo ${soma}/3.0  | bc -l`
+media=`echo ${soma}/10.0  | bc -l`
 echo "MEDIA: ${media}"
 echo "MEDIA: ${media}" >> $result_file

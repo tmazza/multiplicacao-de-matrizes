@@ -32,7 +32,6 @@ void *processa_linha (void *arg) {
 	}
 
     printf("Terminei linhas: %d a %d\n", from, to);
-    sleep(1);
     pthread_exit(NULL);
 }
 

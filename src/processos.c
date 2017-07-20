@@ -46,7 +46,6 @@ void processa_linhas(int myid, int segment_id, char *shared_memory) {
 
 	shmdt(shared_memory);
 
-	sleep(1); // TODO: REMOVER!!!!
 	exit(0);
 }
 
