@@ -8,6 +8,12 @@
 #include "util.c"
 #include "../inc/processos.h"
 
+int num_procs = 0;
+// Distribuição das linhas entre os processos
+// Lista de tuplas [inicio, fim], sendo inicio e fim interiros que
+// definem quais linhas o processo i deve executar
+int **procs_dist; 
+
 int **in1 = NULL;
 int in1_lin = 0, in1_col = 0;
 
@@ -21,6 +27,7 @@ int out_lin = 0, out_col = 0;
 int** alocaMatrizInteiros(int lin, int col)
 {
 	int **m = (int**) malloc(lin * sizeof(int*));
+	
 	for (int i = 0; i < lin; i++) {
 		m[i] = (int*) malloc(col * sizeof(int));
 		for (int j = 0; j < col; j++) {
@@ -45,12 +52,12 @@ void init(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	printf("\nMatriz 1: %20s\nMatriz 2: %20s\nQtd proc: %s\n\n", argv[2], argv[3], argv[1]);
-
+	/**** Qtd processos ****/
+	num_procs = (int) strtol(argv[3], NULL, 10);
 
 	// TODO: criar função para leitura e processamento do arquivo
 	/**** Lê e processa in1 ****/
-	temp_file = fopen(argv[2],"r");
+	temp_file = fopen(argv[1],"r");
 	if (!temp_file) {
 		printf("Erro ao abrir arquivo in1\n");
 	    exit(1);
@@ -76,7 +83,7 @@ void init(int argc, char *argv[]) {
 	fclose(temp_file);
 
 	/**** Lê e processa in2 ****/
-	temp_file = fopen(argv[3],"r");
+	temp_file = fopen(argv[2],"r");
 	if (!temp_file) {
 		printf("Erro ao abrir arquivo in2\n");
 	    exit(1);
@@ -102,10 +109,43 @@ void init(int argc, char *argv[]) {
 
 	fclose(temp_file);
 
-	// Alocação matriz resultado
+	/**** Define divisão de linhas para processos ****/
+	if(!num_procs) {
+		printf("*** A quandidade de processos é inválida. Somente um processo será criado.\n\n");
+		num_procs = 1;
+	}
+
+	if(num_procs > in1_lin) {
+		printf("*** Quantidade de maior do que a de linhas! Será utilizado um processo por linha. Utilizados %d processos dos %d solicitados\n\n", in1_lin, num_procs);
+		num_procs = in1_lin;
+	}
+
+	int lin_procs = in1_lin/num_procs; // Linhas por processo
+
+	procs_dist = alocaMatrizInteiros(num_procs, 2); // Uma tupla [inicio, fim] para cada processo
+
+	for(int i = 0; i < num_procs; i++) {
+		procs_dist[i][0] = i*lin_procs; // from line
+		procs_dist[i][1] = procs_dist[i][0] + lin_procs - 1; // to line
+	}
+
+	// Divisão pode não ser inteira, linhas faltantes são atribuidas 
+	// ao último processo. Por exemplo com 8 linhas e 3 processos, o 
+	// ultimo ficara com 4 linhas enquanto os demais ficarão com 2
+	int diff = in1_lin - (num_procs * lin_procs); 
+	procs_dist[num_procs-1][1] += diff;
+
+	/**** Alocação matriz resultado ****/
 	out_lin = in1_lin;
 	out_col = in2_col;
 	out = alocaMatrizInteiros(out_lin, out_col);
+
+	/**** View ****/ 
+	printf("\nMatriz 1: %20s\nMatriz 2: %20s\nQtd proc: %s\n", argv[1], argv[2], argv[3]);
+	printf("Por proc: %d\n", lin_procs);
+	for(int i = 0; i < num_procs; i++) {
+		printf("Proc %d, linhas: %d a %d\n", i, procs_dist[i][0], procs_dist[i][1]);
+	}
 
 }
 
@@ -147,6 +187,12 @@ void printMatriz(int n) {
 	printf("\n");
 }
 
+/**
+ * Informações das matrizes in1 e in2 e da distribuição dos processos
+ * são usadas pelos processos filhos acessando as cópias realiazidas pelo fork()
+ * No final da execução os processos filhas salva da memória compartilha com
+ * segment_id igual ao seu número de processo 'i' associado no momento do fork()
+ */
 int main(int argc, char *argv[])
 {
 	init(argc, argv);
@@ -171,6 +217,11 @@ int main(int argc, char *argv[])
 	printMatriz(3);
 
 	save_out();
+
+	free(procs_dist);
+	free(in1);
+	free(in2);
+	free(out);
 
 	// pid = fork();
 	// if(pid == 0) {
