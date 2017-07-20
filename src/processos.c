@@ -203,16 +203,16 @@ int main(int argc, char *argv[])
 	int status = -8;
 	int pid;
 
-	for(int i = 0; i < in1_lin; i++) {
-		int result;
-		for(int k = 0; k < in2_col; k++) { // Colunas em in2
-			result = 0;
-			for(int j = 0; j < in1_col; j++) { // in1_col == in2_lin
-				result += in1[i][j] * in2[j][k];
-			}
-			out[i][k] = result;
-		}
-	}
+	// for(int i = 0; i < in1_lin; i++) {
+	// 	int result;
+	// 	for(int k = 0; k < in2_col; k++) { // Colunas em in2
+	// 		result = 0;
+	// 		for(int j = 0; j < in1_col; j++) { // in1_col == in2_lin
+	// 			result += in1[i][j] * in2[j][k];
+	// 		}
+	// 		out[i][k] = result;
+	// 	}
+	// }
 
 	printMatriz(3);
 
