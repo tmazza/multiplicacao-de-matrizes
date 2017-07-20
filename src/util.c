@@ -127,7 +127,7 @@ void printMatriz(int lin, int col, int **m)
 	printf("\n----- %dx%d -----\n", lin, col);
 	for(int i = 0; i < lin; i++) {
 		for(int j = 0; j < col; j++) {
-			printf("%4d", m[i][j]);
+			printf("%d ", m[i][j]);
 		}
 		printf("\n");
 	}
