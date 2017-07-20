@@ -214,15 +214,6 @@ int main(int argc, char *argv[])
 	// 	}
 	// }
 
-	printMatriz(3);
-
-	save_out();
-
-	free(procs_dist);
-	free(in1);
-	free(in2);
-	free(out);
-
 	// pid = fork();
 	// if(pid == 0) {
 	// 	printf("enter the ninja\n");
@@ -245,6 +236,18 @@ int main(int argc, char *argv[])
 	// 	}
 
 	// } 
+
+
+
+
+	printMatriz(3);
+
+	save_out();
+
+	free(procs_dist);
+	free(in1);
+	free(in2);
+	free(out);
 
 	return 0;
 }
