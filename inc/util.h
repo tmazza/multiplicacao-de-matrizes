@@ -43,7 +43,8 @@ FILE *file_out;
 void init(int argc, char *argv[]);
 
 /**
- * Aloca matriz de inteiros de tamanho lin x col
+ * Aloca matriz de inteiros de tamanho lin x col com valores
+ * inicializados em 0
  */
 int** alocaMatrizInteiros(int lin, int col);
 
@@ -74,3 +75,8 @@ void resultFileCreate();
  * Fechar arquivo de resultado
  */
 void resultFileClose();
+
+/**
+ * Libera memória aloca para váriaveis globais
+ */
+void libera_memoria_alocada();

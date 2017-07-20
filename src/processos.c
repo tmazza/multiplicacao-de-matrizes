@@ -92,9 +92,7 @@ int main(int argc, char *argv[])
 	resultFileClose();
 
 	// Libera memória alocada
-	free(procs_dist);
-	free(in1);
-	free(in2);
+	libera_memoria_alocada();
 	
 	// Libera memórias compartilhadas
 	for(int i = 0; i < num_procs; i++) {

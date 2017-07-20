@@ -15,9 +15,9 @@ void init(int argc, char *argv[]) {
 
 	/**** View ****/ 
 	printf("-------------------------------------------\n");
-	printf("Matriz 1: %20s\nMatriz 2: %20s\nQtd proc: %s\n", argv[1], argv[2], argv[3]);
+	printf("Matriz 1: %20s\nMatriz 2: %20s\nDividir em: %s\n", argv[1], argv[2], argv[3]);
 	for(int i = 0; i < num_procs; i++) {
-		printf("Proc %d, linhas: %d a %d\n", i, procs_dist[i][0], procs_dist[i][1]);
+		printf("%2d | linhas: %d a %d\n", i, procs_dist[i][0], procs_dist[i][1]);
 	}
 	printf("-------------------------------------------\n");
 }
@@ -145,4 +145,10 @@ void resultFileCreate() {
 
 void resultFileClose() {
 	fclose(file_out);
+}
+
+void libera_memoria_alocada() {
+	free(procs_dist);
+	free(in1);
+	free(in2);
 }
