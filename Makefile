@@ -14,4 +14,5 @@ threads:
 	$(CC) -o $(BIN_DIR)threads $(SRC_DIR)threads.c -pthread
 
 clean:
+	@rm -rf out.txt
 	@rm -rf $(BIN_DIR)
