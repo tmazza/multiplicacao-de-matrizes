@@ -8,7 +8,8 @@
 #include <sys/stat.h>
 #include "util.c"
 
-#define BUFF_SIZE 4096
+#define BUFF_SIZE 4194304
+
 
 /**
  * Processo filho criado.
@@ -29,6 +30,8 @@ void processa_linhas(int myid, int segment_id, char *shared_memory) {
 	lineResult = (char *) malloc( BUFF_SIZE );
 
 	for(int i = from; i <= to; i++) { 							// Linhas atribuidas ao processo
+		// printf("\nF:%d T: %d - %d\n\n", from, to, i);
+		
 		for(int k = 0; k < in2_col; k++) { 						// Colunas em in2
 			result = 0;
 			for(int j = 0; j < in1_col; j++) { 					// in1_col == in2_lin
@@ -36,12 +39,16 @@ void processa_linhas(int myid, int segment_id, char *shared_memory) {
 			}
 			len += sprintf( lineResult + len, "%d ", result);
 		}
+
 		if(i != to){											// Enviata quebra de linha extra
 			len += sprintf( lineResult + len, "\n");
 		}
+
 	}
 
+
 	strcat(shared_memory, "\0");
+	printf("---- BUFFF %d\n", len);
 	strcpy(shared_memory, lineResult);							// Grava resultados na memória compartilhada
 
 	shmdt(shared_memory);
@@ -69,6 +76,7 @@ int main(int argc, char *argv[])
 
 	for(int i = 0; i < num_procs; i++) {
 		segment_id[i] = shmget(IPC_PRIVATE, BUFF_SIZE, S_IRUSR | S_IWUSR);
+
 		if(fork() == 0) {
 			processa_linhas(myid, segment_id[myid], shared_memory[myid]);
 		} else {
@@ -76,8 +84,10 @@ int main(int argc, char *argv[])
 		}
 	}
 
+
 	// Aguardando todos os filhos encerrarem
     while ((pid = wait(&status)) > 0) {
+	printf("\n\n-----\n\n");
     	printf("%d: terminei \\o/ \n", (int) pid);
     }
 

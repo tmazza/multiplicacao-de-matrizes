@@ -15,7 +15,7 @@ if [ $1 ]; then
 			echo "----------- START ${dir_name} --------------------"
 			echo ""
 			
-			eval "./scripts/exec.sh ${versao} m-16x20-20x32 ${num_procs}"
+			eval "./scripts/exec.sh ${versao} ${dir_name} ${num_procs}"
 
 			echo ""
 			echo "----------- END ${dir_name} --------------------"

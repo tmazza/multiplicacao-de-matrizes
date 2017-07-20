@@ -85,8 +85,6 @@ int main( int argc, char **argv) {
     // Grava resultados em arquivo
     save_out();
 
-  	printMatriz(out_lin, out_col, out);
-
 	// Libera memória alocada
 	libera_memoria_alocada();
     free(out);
