@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include "util.c"
 
-#define BUFF_SIZE 4194304
+#define BUFF_SIZE 33554432 // 2^25 bytes
 
 
 /**
@@ -27,7 +27,7 @@ void processa_linhas(int myid, int segment_id, char *shared_memory) {
 
 	shared_memory = (char *) shmat(segment_id, NULL, 0);
 	
-	lineResult = (char *) malloc( BUFF_SIZE );
+	lineResult = (char *) malloc( BUFF_SIZE/num_procs );
 
 	for(int i = from; i <= to; i++) { 							// Linhas atribuidas ao processo
 		// printf("\nF:%d T: %d - %d\n\n", from, to, i);
@@ -46,9 +46,7 @@ void processa_linhas(int myid, int segment_id, char *shared_memory) {
 
 	}
 
-
 	strcat(shared_memory, "\0");
-	printf("---- BUFFF %d\n", len);
 	strcpy(shared_memory, lineResult);							// Grava resultados na memória compartilhada
 
 	shmdt(shared_memory);
@@ -75,7 +73,7 @@ int main(int argc, char *argv[])
 	int myid = 0;
 
 	for(int i = 0; i < num_procs; i++) {
-		segment_id[i] = shmget(IPC_PRIVATE, BUFF_SIZE, S_IRUSR | S_IWUSR);
+		segment_id[i] = shmget(IPC_PRIVATE, BUFF_SIZE/num_procs, S_IRUSR | S_IWUSR);
 
 		if(fork() == 0) {
 			processa_linhas(myid, segment_id[myid], shared_memory[myid]);

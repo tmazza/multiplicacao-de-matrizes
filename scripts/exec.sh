@@ -7,7 +7,7 @@ if [ $1 ]; then
 			versao=$1
 			current_dir=$2
 			num_procs=$3
-			qtd_exec=100
+			qtd_exec=10
 
 			cmd="./bin/${versao} ./data/${current_dir}/in1.txt ./data/${current_dir}/in2.txt ${num_procs}"
 
